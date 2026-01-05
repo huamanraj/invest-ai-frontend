@@ -10,17 +10,20 @@ interface Message {
 
 interface ChatMessagesContainerProps {
   messages: Message[];
-  containerRef: React.RefObject<HTMLDivElement>;
+  containerRef: React.RefObject<HTMLDivElement | null>;
+  topContent?: React.ReactNode;
 }
 
 export function ChatMessagesContainer({
   messages,
   containerRef,
+  topContent,
 }: ChatMessagesContainerProps) {
   return (
     <div ref={containerRef} className="relative flex-1 overflow-y-auto">
       <ChatContainerRoot className="h-full">
         <ChatContainerContent className="space-y-0 px-5 py-12">
+          {topContent}
           {messages.map((message, index) => (
             <ChatMessage
               key={message.id}
