@@ -7,6 +7,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
   LinkChatSession,
+  LinkChatMessage,
   loadLinkChats,
   normalizeUrl,
   updateLinkChat,
