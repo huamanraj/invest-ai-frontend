@@ -11,12 +11,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Message, MessageContent } from "@/components/ui/message";
 import { cn } from "@/lib/utils";
 import { CheckCircle2, FileSearch, Loader2, XCircle } from "lucide-react";
-import type { LinkChatStatus } from "@/lib/link-chat-store";
+import type { ProjectStatus } from "@/lib/projects-api";
 
 export type LinkProcessingPanelProps = {
   step: number; // 0..5, -1 for failed
   url: string;
-  status?: LinkChatStatus;
+  status?: ProjectStatus;
 };
 
 const STEPS = [

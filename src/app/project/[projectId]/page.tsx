@@ -1,6 +1,6 @@
 import { FullChatApp } from "@/components/main/chat-app";
 
-export default function HomePage() {
+export default function ProjectPage() {
   return <FullChatApp />;
 }
 

@@ -12,62 +12,81 @@ import {
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BadgeIndianRupee, PlusIcon } from "lucide-react";
-import type { LinkChatSession } from "@/lib/link-chat-store";
-import { isProcessingStatus, isReadyStatus } from "@/lib/link-chat-store";
 import { cn } from "@/lib/utils";
 import { useMemo } from "react";
+import { useProjectsStore } from "@/lib/stores/projects-store";
+import type { ProjectStatus } from "@/lib/projects-api";
 
 type ChatSidebarProps = {
-  chats: LinkChatSession[];
-  activeChatId?: string | null;
-  onNewChat: () => void;
-  onSelectChat: (chatId: string) => void;
-  isLoading?: boolean;
+  activeProjectId?: string | null;
+  onNewProject: () => void;
+  onSelectProject: (projectId: string) => void;
 };
 
-function groupChats(chats: LinkChatSession[]) {
+function groupProjects(projects: Array<{ id: string; created_at: string }>) {
   const now = Date.now();
   const dayMs = 24 * 60 * 60 * 1000;
 
-  const buckets: Record<string, LinkChatSession[]> = {
+  const buckets: Record<string, typeof projects> = {
     Today: [],
     Yesterday: [],
     "Last 7 days": [],
     Older: [],
   };
 
-  for (const c of chats) {
-    const diffDays = Math.floor((now - c.createdAt) / dayMs);
-    if (diffDays <= 0) buckets["Today"].push(c);
-    else if (diffDays === 1) buckets["Yesterday"].push(c);
-    else if (diffDays <= 7) buckets["Last 7 days"].push(c);
-    else buckets["Older"].push(c);
+  for (const p of projects) {
+    const createdAt = new Date(p.created_at).getTime();
+    const diffDays = Math.floor((now - createdAt) / dayMs);
+    if (diffDays <= 0) buckets["Today"].push(p);
+    else if (diffDays === 1) buckets["Yesterday"].push(p);
+    else if (diffDays <= 7) buckets["Last 7 days"].push(p);
+    else buckets["Older"].push(p);
   }
 
   return Object.entries(buckets).filter(([, items]) => items.length > 0);
 }
 
-function getStatusLabel(chat: LinkChatSession): string {
-  if (isProcessingStatus(chat.status)) {
-    return chat.status === "pending" ? "starting..." : `${chat.status}...`;
+function getStatusLabel(status: ProjectStatus): string {
+  const processingStatuses: ProjectStatus[] = [
+    "pending",
+    "scraping",
+    "downloading",
+    "parsing",
+    "embedding",
+  ];
+  if (processingStatuses.includes(status)) {
+    return status === "pending" ? "starting..." : `${status}...`;
   }
-  if (chat.status === "failed") {
+  if (status === "failed") {
     return "failed";
   }
   return "";
 }
 
-function getStatusColor(chat: LinkChatSession): string {
-  if (isProcessingStatus(chat.status)) {
+function getStatusColor(status: ProjectStatus): string {
+  const processingStatuses: ProjectStatus[] = [
+    "pending",
+    "scraping",
+    "downloading",
+    "parsing",
+    "embedding",
+  ];
+  if (processingStatuses.includes(status)) {
     return "text-primary";
   }
-  if (chat.status === "failed") {
+  if (status === "failed") {
     return "text-destructive";
   }
   return "text-muted-foreground";
 }
 
-function ChatSkeletonLoader() {
+function isProcessingStatus(status: ProjectStatus): boolean {
+  return ["pending", "scraping", "downloading", "parsing", "embedding"].includes(
+    status
+  );
+}
+
+function ProjectSkeletonLoader() {
   return (
     <>
       <SidebarGroup>
@@ -88,13 +107,12 @@ function ChatSkeletonLoader() {
 }
 
 export function ChatSidebar({
-  chats,
-  activeChatId,
-  onNewChat,
-  onSelectChat,
-  isLoading = false,
+  activeProjectId,
+  onNewProject,
+  onSelectProject,
 }: ChatSidebarProps) {
-  const grouped = useMemo(() => groupChats(chats), [chats]);
+  const { projects, isLoading } = useProjectsStore();
+  const grouped = useMemo(() => groupProjects(projects), [projects]);
 
   return (
     <Sidebar>
@@ -111,43 +129,43 @@ export function ChatSidebar({
           <Button
             variant="outline"
             className="mb-4 flex w-full items-center gap-2"
-            onClick={onNewChat}
+            onClick={onNewProject}
             disabled={isLoading}
           >
             <PlusIcon className="size-4" />
-            <span>New Chat</span>
+            <span>New Project</span>
           </Button>
         </div>
         {isLoading ? (
           <>
-            <ChatSkeletonLoader />
-            <ChatSkeletonLoader />
+            <ProjectSkeletonLoader />
+            <ProjectSkeletonLoader />
           </>
         ) : grouped.length ? (
           grouped.map(([label, items]) => (
             <SidebarGroup key={label}>
               <SidebarGroupLabel>{label}</SidebarGroupLabel>
               <SidebarMenu>
-                {items.map((chat) => {
-                  const statusLabel = getStatusLabel(chat);
-                  const statusColor = getStatusColor(chat);
+                {items.map((project) => {
+                  const statusLabel = getStatusLabel(project.status);
+                  const statusColor = getStatusColor(project.status);
 
                   return (
                     <SidebarMenuButton
-                      key={chat.id}
-                      isActive={chat.id === activeChatId}
-                      onClick={() => onSelectChat(chat.id)}
+                      key={project.id}
+                      isActive={project.id === activeProjectId}
+                      onClick={() => onSelectProject(project.id)}
                       className="flex items-center justify-between gap-2"
                     >
                       <span className="min-w-0 truncate">
-                        {chat.companyName || chat.title}
+                        {project.name || project.company_name}
                       </span>
                       {statusLabel && (
                         <span
                           className={cn(
                             "ml-auto text-[10px]",
                             statusColor,
-                            isProcessingStatus(chat.status) && "animate-pulse"
+                            isProcessingStatus(project.status) && "animate-pulse"
                           )}
                         >
                           {statusLabel}
@@ -161,8 +179,8 @@ export function ChatSidebar({
           ))
         ) : (
           <div className="text-muted-foreground px-4 text-xs">
-            No chats yet — click <span className="font-medium">New Chat</span>{" "}
-            to paste a link.
+            No projects yet — click <span className="font-medium">New Project</span>{" "}
+            to create one.
           </div>
         )}
       </SidebarContent>
