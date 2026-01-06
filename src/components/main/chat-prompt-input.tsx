@@ -22,7 +22,7 @@ export function ChatPromptInput({
   disabled = false,
 }: ChatPromptInputProps) {
   return (
-    <div className=" z-10 shrink-0 px-3 pb-3 md:px-5 md:pb-5">
+    <div className="z-10 shrink-0 px-3 pb-3 md:px-5 md:pb-5">
       <div className="mx-auto max-w-3xl">
         <PromptInput
           isLoading={isLoading}
@@ -30,12 +30,12 @@ export function ChatPromptInput({
           onValueChange={onPromptChange}
           onSubmit={onSubmit}
           disabled={disabled}
-          className="border-input bg-popover relative z-10 w-full rounded-3xl border p-0 pt-1 shadow-xs"
+          className="border-input bg-popover relative z-10 w-full rounded-3xl border p-0 shadow-xs overflow-hidden"
         >
           <div className="flex flex-col">
             <PromptInputTextarea
               placeholder="Ask anything"
-              className="min-h-11 pt-3 pl-4   text-base leading-[1.3] sm:text-base md:text-base"
+              className="min-h-11 pt-3 pl-4 pb-0 text-base leading-[1.3] sm:text-base md:text-base rounded-none"
             />
 
             <PromptInputActions className="mt-5 flex w-full items-center justify-end gap-2 px-3 pb-3">

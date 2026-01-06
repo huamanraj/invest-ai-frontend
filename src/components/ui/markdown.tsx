@@ -25,6 +25,62 @@ function extractLanguage(className?: string): string {
 }
 
 const INITIAL_COMPONENTS: Partial<Components> = {
+  // Headings
+  h1: ({ children }) => (
+    <h1 className="text-2xl font-bold mt-6 mb-4 text-foreground">{children}</h1>
+  ),
+  h2: ({ children }) => (
+    <h2 className="text-xl font-semibold mt-5 mb-3 text-foreground">{children}</h2>
+  ),
+  h3: ({ children }) => (
+    <h3 className="text-lg font-semibold mt-4 mb-2 text-foreground">{children}</h3>
+  ),
+  h4: ({ children }) => (
+    <h4 className="text-base font-semibold mt-3 mb-2 text-foreground">{children}</h4>
+  ),
+  h5: ({ children }) => (
+    <h5 className="text-sm font-semibold mt-3 mb-2 text-foreground">{children}</h5>
+  ),
+  h6: ({ children }) => (
+    <h6 className="text-sm font-medium mt-2 mb-1 text-muted-foreground">{children}</h6>
+  ),
+  
+  // Paragraphs
+  p: ({ children }) => (
+    <p className="mb-4 leading-7 text-foreground last:mb-0">{children}</p>
+  ),
+  
+  // Lists
+  ul: ({ children }) => (
+    <ul className="mb-4 ml-6 list-disc space-y-2 text-foreground">{children}</ul>
+  ),
+  ol: ({ children }) => (
+    <ol className="mb-4 ml-6 list-decimal space-y-2 text-foreground">{children}</ol>
+  ),
+  li: ({ children }) => (
+    <li className="leading-7 pl-1">{children}</li>
+  ),
+  
+  // Links
+  a: ({ href, children }) => (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="text-primary underline underline-offset-4 hover:text-primary/80 transition-colors"
+    >
+      {children}
+    </a>
+  ),
+  
+  // Blockquotes
+  blockquote: ({ children }) => (
+    <blockquote className="border-l-4 border-muted-foreground/30 pl-4 my-4 italic text-muted-foreground">
+      {children}
+    </blockquote>
+  ),
+  
+  // Code blocks
   code: function CodeComponent({ className, children, ...props }) {
     const isInline =
       !props.node?.position?.start.line ||
@@ -32,15 +88,15 @@ const INITIAL_COMPONENTS: Partial<Components> = {
 
     if (isInline) {
       return (
-        <span
+        <code
           className={cn(
-            "bg-primary-foreground rounded-sm px-1 font-mono text-sm",
+            "bg-muted rounded-sm px-1.5 py-0.5 font-mono text-sm text-foreground",
             className
           )}
           {...props}
         >
           {children}
-        </span>
+        </code>
       )
     }
 
@@ -55,6 +111,49 @@ const INITIAL_COMPONENTS: Partial<Components> = {
   pre: function PreComponent({ children }) {
     return <>{children}</>
   },
+  
+  // Tables
+  table: ({ children }) => (
+    <div className="my-6 w-full overflow-x-auto">
+      <table className="w-full border-collapse border border-border rounded-lg">
+        {children}
+      </table>
+    </div>
+  ),
+  thead: ({ children }) => (
+    <thead className="bg-muted">{children}</thead>
+  ),
+  tbody: ({ children }) => (
+    <tbody className="divide-y divide-border">{children}</tbody>
+  ),
+  tr: ({ children }) => (
+    <tr className="border-b border-border hover:bg-muted/50 transition-colors">
+      {children}
+    </tr>
+  ),
+  th: ({ children }) => (
+    <th className="border border-border px-4 py-2 text-left font-semibold text-foreground">
+      {children}
+    </th>
+  ),
+  td: ({ children }) => (
+    <td className="border border-border px-4 py-2 text-foreground">
+      {children}
+    </td>
+  ),
+  
+  // Horizontal rule
+  hr: () => (
+    <hr className="my-6 border-t border-border" />
+  ),
+  
+  // Strong and emphasis
+  strong: ({ children }) => (
+    <strong className="font-semibold text-foreground">{children}</strong>
+  ),
+  em: ({ children }) => (
+    <em className="italic text-foreground">{children}</em>
+  ),
 }
 
 const MemoizedMarkdownBlock = memo(
@@ -79,7 +178,7 @@ const MemoizedMarkdownBlock = memo(
   }
 )
 
-MemoizedMarkdownBlock.displayName = "MemoizedMarkdownBlock"
+MemoizedMarkdownBlock.displayName = "MarkdownBlock"
 
 function MarkdownComponent({
   children,

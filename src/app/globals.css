@@ -122,4 +122,45 @@
   body {
     @apply bg-background text-foreground;
   }
+  input::placeholder,
+  textarea::placeholder {
+    opacity: 0.4;
+  }
+  
+  /* Custom Scrollbar Styles - Thin and Minimal */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--muted-foreground) transparent;
+  }
+  
+  *::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  *::-webkit-scrollbar-thumb {
+    background-color: var(--muted-foreground);
+    border-radius: 3px;
+    border: none;
+    opacity: 0.5;
+  }
+  
+  *::-webkit-scrollbar-thumb:hover {
+    opacity: 0.8;
+  }
+}
+
+@keyframes pulse-dot {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(0.8);
+  }
 }

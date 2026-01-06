@@ -1,10 +1,23 @@
+import type { JobStatus } from "./api";
+
 export type LinkChatMessage = {
-  id: number;
+  id: string | number;
   role: "user" | "assistant";
   content: string;
+  isStreaming?: boolean;
 };
 
-export type LinkChatStatus = "processing" | "ready";
+// Extended status to include all API statuses
+export type LinkChatStatus =
+  | "pending"
+  | "scraping"
+  | "downloading"
+  | "parsing"
+  | "embedding"
+  | "completed"
+  | "failed"
+  | "processing" // Legacy/UI status
+  | "ready"; // Legacy/UI status
 
 export type LinkChatSession = {
   id: string;
@@ -14,6 +27,9 @@ export type LinkChatSession = {
   status: LinkChatStatus;
   processingStartedAt?: number;
   messages: LinkChatMessage[];
+  sessionId?: string; // Chat session ID from API
+  errorMessage?: string;
+  companyName?: string;
 };
 
 const STORAGE_KEY = "investai:linkChats:v1";
@@ -29,7 +45,9 @@ function safeParse<T>(raw: string | null): T | null {
 
 export function loadLinkChats(): LinkChatSession[] {
   if (typeof window === "undefined") return [];
-  const parsed = safeParse<LinkChatSession[]>(window.localStorage.getItem(STORAGE_KEY));
+  const parsed = safeParse<LinkChatSession[]>(
+    window.localStorage.getItem(STORAGE_KEY)
+  );
   if (!Array.isArray(parsed)) return [];
   return parsed;
 }
@@ -64,10 +82,6 @@ export function updateLinkChat(
   return chats;
 }
 
-export function makeJobId() {
-  return `job_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
-}
-
 export function normalizeUrl(raw: string) {
   const trimmed = raw.trim();
   if (!trimmed) return "";
@@ -84,4 +98,44 @@ export function urlToTitle(url: string) {
   }
 }
 
+// Map API status to processing step (0-4)
+export function statusToProcessingStep(status: LinkChatStatus): number {
+  switch (status) {
+    case "pending":
+      return 0;
+    case "scraping":
+      return 1;
+    case "downloading":
+      return 2;
+    case "parsing":
+      return 3;
+    case "embedding":
+      return 4;
+    case "completed":
+    case "ready":
+      return 5;
+    case "failed":
+      return -1;
+    case "processing":
+      return 1;
+    default:
+      return 0;
+  }
+}
 
+// Check if status means processing is ongoing
+export function isProcessingStatus(status: LinkChatStatus): boolean {
+  return ["pending", "scraping", "downloading", "parsing", "embedding", "processing"].includes(
+    status
+  );
+}
+
+// Check if status means ready for chat
+export function isReadyStatus(status: LinkChatStatus): boolean {
+  return status === "completed" || status === "ready";
+}
+
+// Map API JobStatus to LinkChatStatus
+export function jobStatusToLinkStatus(jobStatus: JobStatus): LinkChatStatus {
+  return jobStatus as LinkChatStatus;
+}

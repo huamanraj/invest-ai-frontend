@@ -1,30 +1,24 @@
 import {
   Message,
-  MessageAction,
-  MessageActions,
   MessageContent,
 } from "@/components/ui/message";
-import { Button } from "@/components/ui/button";
-import {
-  Copy,
-  ThumbsDown,
-  ThumbsUp,
-  Pencil,
-  Trash,
-} from "lucide-react";
+import { PulseDotLoader } from "@/components/ui/loader";
 import { cn } from "@/lib/utils";
 
 interface ChatMessageProps {
   message: {
-    id: number;
+    id: string | number;
     role: "user" | "assistant";
     content: string;
+    isStreaming?: boolean;
   };
   isLastMessage: boolean;
 }
 
 export function ChatMessage({ message, isLastMessage }: ChatMessageProps) {
   const isAssistant = message.role === "assistant";
+  const isStreaming = message.isStreaming;
+  const hasContent = message.content.length > 0;
 
   return (
     <Message
@@ -36,84 +30,22 @@ export function ChatMessage({ message, isLastMessage }: ChatMessageProps) {
       {isAssistant ? (
         <div className="group flex w-full flex-col gap-0">
           <MessageContent
-            className="text-foreground prose flex-1 rounded-lg bg-transparent p-0"
+            className="text-foreground prose prose-sm max-w-none flex-1 rounded-lg bg-transparent p-0 prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-a:text-primary prose-code:text-foreground prose-pre:bg-muted prose-pre:text-foreground prose-blockquote:text-muted-foreground prose-blockquote:border-muted-foreground/30 prose-th:text-foreground prose-td:text-foreground"
             markdown
           >
-            {message.content}
+            {hasContent ? message.content : ""}
           </MessageContent>
-          <MessageActions
-            className={cn(
-              "-ml-2.5 flex gap-0 opacity-0 transition-opacity duration-150 group-hover:opacity-100",
-              isLastMessage && "opacity-100"
-            )}
-          >
-            <MessageAction tooltip="Copy" delayDuration={100}>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="rounded-full"
-              >
-                <Copy />
-              </Button>
-            </MessageAction>
-            <MessageAction tooltip="Upvote" delayDuration={100}>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="rounded-full"
-              >
-                <ThumbsUp />
-              </Button>
-            </MessageAction>
-            <MessageAction tooltip="Downvote" delayDuration={100}>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="rounded-full"
-              >
-                <ThumbsDown />
-              </Button>
-            </MessageAction>
-          </MessageActions>
+          {isStreaming && (
+            <div className="mt-2 flex items-center gap-2">
+              <PulseDotLoader size="lg" />
+            </div>
+          )}
         </div>
       ) : (
         <div className="group flex flex-col items-end gap-1">
-          <MessageContent className="bg-muted text-primary max-w-[85%] rounded-3xl px-5 py-2.5 sm:max-w-[75%]">
+          <MessageContent className="bg-muted text-primary  rounded-3xl px-5 py-2.5 ">
             {message.content}
           </MessageContent>
-          <MessageActions
-            className={cn(
-              "flex gap-0 opacity-0 transition-opacity duration-150 group-hover:opacity-100"
-            )}
-          >
-            <MessageAction tooltip="Edit" delayDuration={100}>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="rounded-full"
-              >
-                <Pencil />
-              </Button>
-            </MessageAction>
-            <MessageAction tooltip="Delete" delayDuration={100}>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="rounded-full"
-              >
-                <Trash />
-              </Button>
-            </MessageAction>
-            <MessageAction tooltip="Copy" delayDuration={100}>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="rounded-full"
-              >
-                <Copy />
-              </Button>
-            </MessageAction>
-          </MessageActions>
         </div>
       )}
     </Message>

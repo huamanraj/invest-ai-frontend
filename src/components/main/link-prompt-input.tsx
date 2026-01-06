@@ -1,9 +1,9 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { InputGroup, InputGroupInput, InputGroupButton } from "@/components/ui/input-group";
+import { ArrowUp, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Link2, Loader2, Sparkles } from "lucide-react";
 
 export type LinkPromptInputProps = {
   value: string;
@@ -24,68 +24,50 @@ export function LinkPromptInput({
   isLoading = false,
   disabled = false,
   error,
-  placeholder = "Paste a link to chat with…",
+  placeholder = "https://www.bseindia.com/stock-share-price/mps-ltd/mpsltd/532440/financials-annual-reports/",
   variant = "bottom",
   className,
 }: LinkPromptInputProps) {
   const inner = (
-    <div
-      className={cn(
-        "border-input bg-popover relative z-10 w-full rounded-3xl border p-4 shadow-xs",
-        disabled && "opacity-60"
-      )}
-    >
-      <div className="mx-auto flex w-full max-w-2xl flex-col gap-3">
-        <div className="flex flex-col items-center gap-3 sm:flex-row sm:items-stretch">
-          <div className="text-muted-foreground hidden shrink-0 items-center justify-center rounded-full border bg-card sm:inline-flex sm:size-10">
-            <Link2 className="size-4" />
-          </div>
+    <>
+      <InputGroup className={cn("w-full py-8 rounded-3xl", disabled && "opacity-60")}>
+        <InputGroupInput
+          type="url"
+          value={value}
+          onChange={(e) => onValueChange(e.target.value)}
+          placeholder={placeholder}
+          disabled={disabled || isLoading}
+          inputMode="url"
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              onSubmit();
+            }
+          }}
+          className="h-14 px-6 py-4 placeholder:opacity-40"
+        />
+        <InputGroupButton
+          type="button"
+          onClick={onSubmit}
+          disabled={disabled || isLoading || !value.trim()}
+          size="icon-sm"
+          variant="ghost"
+          className="mr-2"
+        >
+          {!isLoading ? (
+            <ArrowUp size={18} />
+          ) : (
+            <Loader2 className="size-4 animate-spin" />
+          )}
+        </InputGroupButton>
+      </InputGroup>
 
-          <Input
-            value={value}
-            onChange={(e) => onValueChange(e.target.value)}
-            placeholder={placeholder}
-            disabled={disabled || isLoading}
-            inputMode="url"
-            className="h-11 text-center sm:text-left"
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                onSubmit();
-              }
-            }}
-          />
-
-          <Button
-            className="h-11 w-full rounded-full px-5 sm:w-auto"
-            onClick={onSubmit}
-            disabled={disabled || isLoading || !value.trim()}
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="size-4 animate-spin" />
-                Processing
-              </>
-            ) : (
-              <>
-                <Sparkles className="size-4" />
-                Start
-              </>
-            )}
-          </Button>
+      {(error || !error) && (
+        <div className={cn("mt-2 px-1 text-center text-xs", error ? "text-destructive" : "text-muted-foreground")}>
+          {error || "Paste a BSE India annual report URL to analyze the company financials."}
         </div>
-
-        {error ? (
-          <div className="text-destructive px-1 text-center text-xs">
-            {error}
-          </div>
-        ) : (
-          <div className="text-muted-foreground px-1 text-center text-xs">
-            This will create a background scrape job (UI only for now).
-          </div>
-        )}
-      </div>
-    </div>
+      )}
+    </>
   );
 
   if (variant === "center") {
@@ -97,12 +79,10 @@ export function LinkPromptInput({
   }
 
   return (
-    <div className="z-10 shrink-0 px-3 pb-4 md:px-5 md:pb-6">
+    <div className="z-10 shrink-0 px-4 py-4 md:px-6 md:py-6">
       <div className="mx-auto max-w-3xl">
         {inner}
       </div>
     </div>
   );
 }
-
-

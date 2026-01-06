@@ -1,4 +1,4 @@
- "use client";
+"use client";
 
 import {
   Sidebar,
@@ -10,8 +10,10 @@ import {
   SidebarMenuButton,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { BadgeIndianRupee, PlusIcon } from "lucide-react";
 import type { LinkChatSession } from "@/lib/link-chat-store";
+import { isProcessingStatus, isReadyStatus } from "@/lib/link-chat-store";
 import { cn } from "@/lib/utils";
 import { useMemo } from "react";
 
@@ -20,6 +22,7 @@ type ChatSidebarProps = {
   activeChatId?: string | null;
   onNewChat: () => void;
   onSelectChat: (chatId: string) => void;
+  isLoading?: boolean;
 };
 
 function groupChats(chats: LinkChatSession[]) {
@@ -44,11 +47,52 @@ function groupChats(chats: LinkChatSession[]) {
   return Object.entries(buckets).filter(([, items]) => items.length > 0);
 }
 
+function getStatusLabel(chat: LinkChatSession): string {
+  if (isProcessingStatus(chat.status)) {
+    return chat.status === "pending" ? "starting..." : `${chat.status}...`;
+  }
+  if (chat.status === "failed") {
+    return "failed";
+  }
+  return "";
+}
+
+function getStatusColor(chat: LinkChatSession): string {
+  if (isProcessingStatus(chat.status)) {
+    return "text-primary";
+  }
+  if (chat.status === "failed") {
+    return "text-destructive";
+  }
+  return "text-muted-foreground";
+}
+
+function ChatSkeletonLoader() {
+  return (
+    <>
+      <SidebarGroup>
+        <SidebarGroupLabel>
+          <Skeleton className="h-4 w-16" />
+        </SidebarGroupLabel>
+        <SidebarMenu>
+          {[...Array(3)].map((_, i) => (
+            <SidebarMenuButton key={i} disabled className="flex items-center justify-between gap-2">
+              <Skeleton className="h-4 flex-1" />
+              <Skeleton className="h-3 w-12 ml-auto" />
+            </SidebarMenuButton>
+          ))}
+        </SidebarMenu>
+      </SidebarGroup>
+    </>
+  );
+}
+
 export function ChatSidebar({
   chats,
   activeChatId,
   onNewChat,
   onSelectChat,
+  isLoading = false,
 }: ChatSidebarProps) {
   const grouped = useMemo(() => groupChats(chats), [chats]);
 
@@ -68,40 +112,57 @@ export function ChatSidebar({
             variant="outline"
             className="mb-4 flex w-full items-center gap-2"
             onClick={onNewChat}
+            disabled={isLoading}
           >
             <PlusIcon className="size-4" />
             <span>New Chat</span>
           </Button>
         </div>
-        {grouped.length ? (
+        {isLoading ? (
+          <>
+            <ChatSkeletonLoader />
+            <ChatSkeletonLoader />
+          </>
+        ) : grouped.length ? (
           grouped.map(([label, items]) => (
             <SidebarGroup key={label}>
               <SidebarGroupLabel>{label}</SidebarGroupLabel>
               <SidebarMenu>
-                {items.map((chat) => (
-                  <SidebarMenuButton
-                    key={chat.id}
-                    isActive={chat.id === activeChatId}
-                    onClick={() => onSelectChat(chat.id)}
-                    className="flex items-center justify-between gap-2"
-                  >
-                    <span className="min-w-0 truncate">{chat.title}</span>
-                    <span
-                      className={cn(
-                        "text-muted-foreground ml-auto text-[10px]",
-                        chat.status === "processing" && "text-primary"
-                      )}
+                {items.map((chat) => {
+                  const statusLabel = getStatusLabel(chat);
+                  const statusColor = getStatusColor(chat);
+
+                  return (
+                    <SidebarMenuButton
+                      key={chat.id}
+                      isActive={chat.id === activeChatId}
+                      onClick={() => onSelectChat(chat.id)}
+                      className="flex items-center justify-between gap-2"
                     >
-                      {chat.status === "processing" ? "processing" : ""}
-                    </span>
-                  </SidebarMenuButton>
-                ))}
+                      <span className="min-w-0 truncate">
+                        {chat.companyName || chat.title}
+                      </span>
+                      {statusLabel && (
+                        <span
+                          className={cn(
+                            "ml-auto text-[10px]",
+                            statusColor,
+                            isProcessingStatus(chat.status) && "animate-pulse"
+                          )}
+                        >
+                          {statusLabel}
+                        </span>
+                      )}
+                    </SidebarMenuButton>
+                  );
+                })}
               </SidebarMenu>
             </SidebarGroup>
           ))
         ) : (
           <div className="text-muted-foreground px-4 text-xs">
-            No chats yet — click <span className="font-medium">New Chat</span> to paste a link.
+            No chats yet — click <span className="font-medium">New Chat</span>{" "}
+            to paste a link.
           </div>
         )}
       </SidebarContent>
