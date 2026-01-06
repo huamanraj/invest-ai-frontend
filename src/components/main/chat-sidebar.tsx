@@ -15,7 +15,7 @@ import { BadgeIndianRupee, PlusIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMemo } from "react";
 import { useProjectsStore } from "@/lib/stores/projects-store";
-import type { ProjectStatus } from "@/lib/projects-api";
+import type { ProjectStatus, Project } from "@/lib/projects-api";
 
 type ChatSidebarProps = {
   activeProjectId?: string | null;
@@ -23,7 +23,7 @@ type ChatSidebarProps = {
   onSelectProject: (projectId: string) => void;
 };
 
-function groupProjects(projects: Array<{ id: string; created_at: string }>) {
+function groupProjects(projects: Project[]) {
   const now = Date.now();
   const dayMs = 24 * 60 * 60 * 1000;
 

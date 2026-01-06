@@ -42,7 +42,7 @@ function StepIcon({ stepIndex, currentStep }: { stepIndex: number; currentStep: 
 
 export function LinkProcessingPanel({ step, url, status }: LinkProcessingPanelProps) {
   const isFailed = step === -1 || status === "failed";
-  const isComplete = step >= 5 || status === "completed" || status === "ready";
+  const isComplete = step >= 5 || status === "completed";
 
   return (
     <Message className="mx-auto flex w-full max-w-3xl flex-col items-start gap-2 px-6">

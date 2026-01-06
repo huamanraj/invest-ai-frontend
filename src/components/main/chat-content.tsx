@@ -240,14 +240,16 @@ export function ChatContent({
                   disabled={!canChat}
                 />
               </div>
-              <div className="w-full flex-1 min-h-0">
-                <ProjectChatList
-                  projectId={activeProjectId}
-                  activeChatId={activeChatId}
-                  onSelectChat={onSelectChat}
-                  onCreateChat={() => onCreateChat()}
-                />
-              </div>
+              {activeProjectId && (
+                <div className="w-full flex-1 min-h-0">
+                  <ProjectChatList
+                    projectId={activeProjectId}
+                    activeChatId={activeChatId}
+                    onSelectChat={onSelectChat}
+                    onCreateChat={() => onCreateChat()}
+                  />
+                </div>
+              )}
             </div>
           </div>
         </div>
