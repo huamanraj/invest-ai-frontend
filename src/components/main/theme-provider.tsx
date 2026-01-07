@@ -14,13 +14,16 @@ const ThemeContext = React.createContext<ThemeContextType | undefined>(
 );
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = React.useState<Theme>("light");
+  const [theme, setTheme] = React.useState<Theme>("dark");
 
   React.useEffect(() => {
     const stored = localStorage.getItem("theme") as Theme | null;
     if (stored) {
       setTheme(stored);
       document.documentElement.classList.toggle("dark", stored === "dark");
+    } else {
+      // Apply dark mode by default if no theme is stored
+      document.documentElement.classList.add("dark");
     }
   }, []);
 
