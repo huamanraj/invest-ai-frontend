@@ -45,9 +45,13 @@ type ChatContentProps = {
 };
 
 function isProcessingStatus(status: ProjectStatus): boolean {
-  return ["pending", "scraping", "downloading", "parsing", "embedding"].includes(
-    status
-  );
+  return [
+    "pending",
+    "scraping",
+    "downloading",
+    "parsing",
+    "embedding",
+  ].includes(status);
 }
 
 function isReadyStatus(status: ProjectStatus): boolean {
@@ -77,10 +81,15 @@ export function ChatContent({
 
   const activeChat = useMemo(() => {
     if (!activeProjectId || !activeChatId) return null;
-    return chatsByProject[activeProjectId]?.find((c) => c.id === activeChatId) ?? null;
+    return (
+      chatsByProject[activeProjectId]?.find((c) => c.id === activeChatId) ??
+      null
+    );
   }, [activeProjectId, activeChatId, chatsByProject]);
 
-  const isProcessing = activeProject ? isProcessingStatus(activeProject.status) : false;
+  const isProcessing = activeProject
+    ? isProcessingStatus(activeProject.status)
+    : false;
   const canChat = activeProject ? isReadyStatus(activeProject.status) : false;
   const isFailed = activeProject?.status === "failed";
 
@@ -96,8 +105,10 @@ export function ChatContent({
   }, [activeProject, activeChat]);
 
   const subtitle = useMemo(() => {
-    if (!activeProject) return "Paste a BSE India annual report link below to start";
-    if (isFailed) return `Failed: ${activeProject.error_message || "Unknown error"}`;
+    if (!activeProject)
+      return "Paste a BSE India annual report link below to start";
+    if (isFailed)
+      return `Failed: ${activeProject.error_message || "Unknown error"}`;
     if (activeChat) return activeProject.company_name || activeProject.name;
     return activeProject.url;
   }, [activeProject, activeChat, isFailed]);
@@ -215,44 +226,93 @@ export function ChatContent({
           />
         </>
       ) : !activeChatId ? (
-        <div className="flex flex-1 flex-col overflow-hidden">
-          <div className="flex-1 flex flex-col px-4 py-10">
-            <div className="flex-1 flex flex-col items-center justify-center max-w-3xl mx-auto w-full gap-8">
-              <div className="w-full">
-                <div className="mb-6 text-center">
-                  <h2 className="text-2xl font-semibold text-foreground mb-2">
-                    {activeProject.name || activeProject.company_name}
-                  </h2>
-                  <p className="text-muted-foreground text-sm">
-                    {activeProject.company_name || activeProject.name}
-                  </p>
-                </div>
-                <ChatPromptInput
-                  isLoading={false}
-                  prompt={prompt}
-                  onPromptChange={setPrompt}
-                  onSubmit={async () => {
-                    if (!prompt.trim() || !activeProjectId) return;
-                    const text = prompt.trim();
-                    setPrompt("");
-                    await onCreateChat(text);
-                  }}
-                  disabled={!canChat}
-                />
-              </div>
-              {activeProjectId && (
-                <div className="w-full flex-1 min-h-0">
-                  <ProjectChatList
-                    projectId={activeProjectId}
-                    activeChatId={activeChatId}
-                    onSelectChat={onSelectChat}
-                    onCreateChat={() => onCreateChat()}
+        (() => {
+          const chats = activeProjectId
+            ? chatsByProject[activeProjectId] || []
+            : [];
+          const hasChats = chats.length > 0;
+
+          if (!hasChats) {
+            // Center the input when there are no chats
+            return (
+              <div className="flex flex-1 flex-col items-center justify-center px-4 py-10">
+                <div className="max-w-3xl w-full space-y-6">
+                  <div className="text-center">
+                    <h2 className="text-2xl font-semibold text-foreground mb-2">
+                      {activeProject.name || activeProject.company_name}
+                    </h2>
+                    <p className="text-muted-foreground text-sm">
+                      Start a conversation about this project
+                    </p>
+                  </div>
+                  <ChatPromptInput
+                    isLoading={false}
+                    prompt={prompt}
+                    onPromptChange={setPrompt}
+                    onSubmit={async () => {
+                      if (!prompt.trim() || !activeProjectId) return;
+                      const text = prompt.trim();
+                      setPrompt("");
+                      await onCreateChat(text);
+                    }}
+                    disabled={!canChat}
                   />
                 </div>
-              )}
+              </div>
+            );
+          }
+
+          // Normal layout with recent chats
+          return (
+            <div className="flex flex-1 flex-col overflow-hidden">
+              <div className="flex flex-col h-full overflow-hidden">
+                {/* Title section - fixed height */}
+                <div className="shrink-0 px-4 pt-10 pb-4">
+                  <div className="max-w-3xl mx-auto w-full text-center">
+                    <h2 className="text-2xl font-semibold text-foreground mb-2">
+                      {activeProject.name || activeProject.company_name}
+                    </h2>
+                    <p className="text-muted-foreground text-sm">
+                      Start a conversation about this project
+                    </p>
+                  </div>
+                </div>
+
+                {/* Input section - fixed height */}
+                <div className="shrink-0 px-4 pb-6">
+                  <div className="max-w-3xl mx-auto w-full">
+                    <ChatPromptInput
+                      isLoading={false}
+                      prompt={prompt}
+                      onPromptChange={setPrompt}
+                      onSubmit={async () => {
+                        if (!prompt.trim() || !activeProjectId) return;
+                        const text = prompt.trim();
+                        setPrompt("");
+                        await onCreateChat(text);
+                      }}
+                      disabled={!canChat}
+                    />
+                  </div>
+                </div>
+
+                {/* Recent chats section - takes remaining space and scrolls */}
+                {activeProjectId && (
+                  <div className="flex-1 min-h-0 overflow-hidden px-4 pb-4">
+                    <div className="max-w-2xl mx-auto w-full h-full">
+                      <ProjectChatList
+                        projectId={activeProjectId}
+                        activeChatId={activeChatId}
+                        onSelectChat={onSelectChat}
+                        onCreateChat={() => onCreateChat()}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        </div>
+          );
+        })()
       ) : (
         <div className="flex flex-1 flex-col items-center justify-center px-4 py-10">
           <div className="text-center space-y-4">

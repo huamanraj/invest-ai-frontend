@@ -1,6 +1,5 @@
-import { FullChatApp } from "@/components/main/chat-app";
+import { ChatContentWrapper } from "@/components/main/chat-content-wrapper";
 
 export default function ChatPage() {
-  return <FullChatApp />;
+  return <ChatContentWrapper />;
 }
-

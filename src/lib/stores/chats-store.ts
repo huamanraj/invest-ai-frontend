@@ -76,12 +76,19 @@ export const useChatsStore = create<ChatsStore>((set, get) => ({
   updateChat: (projectId, chatId, updates) =>
     set((state) => {
       const chats = state.chatsByProject[projectId] || [];
+      const updatedChats = chats.map((c) =>
+        c.id === chatId ? { ...c, ...updates } : c
+      );
+      // Re-sort by updated_at descending if updated_at was changed
+      if (updates.updated_at) {
+        updatedChats.sort((a, b) => {
+          return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
+        });
+      }
       return {
         chatsByProject: {
           ...state.chatsByProject,
-          [projectId]: chats.map((c) =>
-            c.id === chatId ? { ...c, ...updates } : c
-          ),
+          [projectId]: updatedChats,
         },
       };
     }),
@@ -110,11 +117,11 @@ export const useChatsStore = create<ChatsStore>((set, get) => ({
           [projectId]: chats.map((c) =>
             c.id === chatId
               ? {
-                  ...c,
-                  messages: c.messages.map((m) =>
-                    m.id === messageId ? { ...m, ...updates } : m
-                  ),
-                }
+                ...c,
+                messages: c.messages.map((m) =>
+                  m.id === messageId ? { ...m, ...updates } : m
+                ),
+              }
               : c
           ),
         },
@@ -134,7 +141,7 @@ export const useChatsStore = create<ChatsStore>((set, get) => ({
     try {
       const chats = await apiGetChats(projectId);
       const existingChats = get().chatsByProject[projectId] || [];
-      
+
       // Merge fetched chats with existing ones, preserving messages
       const chatsWithMessages: ChatWithMessages[] = chats.map((chat) => {
         const existingChat = existingChats.find((c) => c.id === chat.id);
@@ -145,13 +152,18 @@ export const useChatsStore = create<ChatsStore>((set, get) => ({
           isStreaming: existingChat?.isStreaming || false,
         };
       });
-      
+
       // Also keep any local chats that aren't in the API response yet
       const localOnlyChats = existingChats.filter(
         (existing) => !chats.find((c) => c.id === existing.id)
       );
-      
-      get().setChats(projectId, [...localOnlyChats, ...chatsWithMessages]);
+
+      // Merge and sort by updated_at descending
+      const allChats = [...localOnlyChats, ...chatsWithMessages].sort((a, b) => {
+        return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
+      });
+
+      get().setChats(projectId, allChats);
     } catch (error) {
       console.error("Failed to fetch chats:", error);
     } finally {
@@ -239,7 +251,7 @@ export const useChatsStore = create<ChatsStore>((set, get) => ({
             });
           }
           // Update chat's updated_at on completion
-          get().updateChat(projectId, chatId, { 
+          get().updateChat(projectId, chatId, {
             isStreaming: false,
             updated_at: new Date().toISOString()
           });
