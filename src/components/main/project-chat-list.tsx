@@ -81,7 +81,6 @@ export function ProjectChatList({
                 )}
                 onClick={() => onSelectChat(chat.id)}
               >
-                <MessageSquare className="size-4 shrink-0" />
                 <div className="flex-1 min-w-0 text-left">
                   <div className="text-sm font-medium truncate">
                     {chat.title}
